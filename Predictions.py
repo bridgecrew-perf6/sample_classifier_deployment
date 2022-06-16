@@ -6,6 +6,7 @@ import pickle as plk
 import pandas as pd
 import psycopg2
 from sqlalchemy import create_engine
+import sys
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import MinMaxScaler
@@ -23,6 +24,7 @@ engine = create_engine('postgresql+psycopg2://postgres:admin@localhost:5432/post
 
 app = FastAPI()
 
+print(sys.version)
 with open('Predict.plk', 'rb') as f:
     model = plk.load(f)
 
@@ -34,7 +36,7 @@ def predict(data: DataReq):
     response = model.predict(df[['to_user_distance', 'to_user_elevation', 'total_earning']])
     df['taken'] = response
     df['created_at'] = pd.to_datetime(df['created_at'])
-    df.to_sql('predictions.history', con=engine)
+    df.to_sql('predictions.history', con=engine, if_exists='append')
     return {'response': response.tolist()}
 
 
